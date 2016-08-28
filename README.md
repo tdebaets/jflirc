@@ -25,7 +25,7 @@ If you want to contribute to this project, don't clone its main repository, but 
 Building
 --------
 
-WinLIRC plug-in for jetAudio has been written in Borland Delphi 4. This means that in order to build this project, you'll need to have Borland Delphi 4 installed and properly set up. See the [generic instructions for building Delphi projects](https://github.com/tdebaets/common/blob/master/CONTRIBUTING.md) in the `common` repository.
+WinLIRC plug-in for jetAudio has been written in Borland Delphi 4. This means that in order to build this project, you'll need to have Borland Delphi 4 installed and properly set up. See the [generic instructions for building Delphi projects](https://github.com/tdebaets/common/blob/master/Delphi/Building.md) in the `common` repository.
 
 License
 -------

@@ -35,5 +35,5 @@ userprefs.bat
 *.tmp.bat
 
 # Per-project compiler options created by Delphi
-# <project-name>.cfg.main is always used instead for command-line compile
+# A common .cfg file is always used instead for command-line compile
 JFLirc.cfg

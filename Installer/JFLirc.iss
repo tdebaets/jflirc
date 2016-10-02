@@ -53,6 +53,8 @@ UsePreviousGroup=false
 ShowLanguageDialog=no
 WizardImageFile=compiler:WizModernImage-IS.bmp
 WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
+DisableWelcomePage=false
+AlwaysShowDirOnReadyPage=true
 
 [Languages]
 Name: english; MessagesFile: compiler:Default.isl

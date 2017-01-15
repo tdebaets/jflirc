@@ -30,4 +30,4 @@ WinLIRC plug-in for jetAudio has been written in Borland Delphi 4. This means th
 License
 -------
 
-WinLIRC plug-in for jetAudio is Copyright © 2016 Tim De Baets. It is licensed under the Apache License version 2.0, see [LICENSE](LICENSE) for details.
+WinLIRC plug-in for jetAudio is Copyright © 2016-2017 Tim De Baets. It is licensed under the Apache License version 2.0, see [LICENSE](LICENSE) for details.

@@ -47,7 +47,7 @@ type
     fMenuCommands: THashTable;
     fMonitorCommands: THashTable;
     fMappedCommands: THashTable;
-    fMappedKeys: TStringList;
+    fMappedKeys: TStringList; // TODO: use helper class
 
     fIniFile: TIniFile;
     fWinLircHost: String;
@@ -599,7 +599,7 @@ begin
       fIniFile.ReadSection(KeysSection, fMappedKeys);
       for i := 0 to fMappedKeys.Count - 1 do begin
         fMappedKeys.Objects[i] :=
-            RefString(fIniFile.ReadString(KeysSection, fMappedKeys[i], ''));
+            TString.Create(fIniFile.ReadString(KeysSection, fMappedKeys[i], ''));
       end;
       ResolveMappings;
     end;
@@ -616,7 +616,6 @@ end;
 procedure TJFLircPlugin.ResolveMappings;
 var
   i: Integer;
-  pCommandStr: Pointer;
   CommandStr: String;
   Command: TJACommand;
   CommandParam: Pointer;
@@ -624,31 +623,24 @@ begin
   fMappedCommands.Empty;
   for i := 0 to fMappedKeys.Count - 1 do begin
     Command := nil;
-    pCommandStr := fMappedKeys.Objects[i];
-    if Assigned(pCommandStr) then begin
-      CommandStr := String(pCommandStr);
-      if fStandardCommands.Search(CommandStr, CommandParam) then
-        Command := TStandardJACommand.Create(Self, Integer(CommandParam));
-      if fModeCommands.Search(CommandStr, CommandParam) then
-        Command := TModeJACommand.Create(Self, TJAMode(CommandParam));
-      if fMenuCommands.Search(CommandStr, CommandParam) then
-        Command := TMenuJACommand.Create(Self, Integer(CommandParam));
-      if fMonitorCommands.Search(CommandStr, CommandParam) then
-        Command := TSwitchMonitorCommand.Create(Self, Integer(CommandParam));
-    end;
+    CommandStr := TString(fMappedKeys.Objects[i]).Str;
+    if fStandardCommands.Search(CommandStr, CommandParam) then
+      Command := TStandardJACommand.Create(Self, Integer(CommandParam));
+    if fModeCommands.Search(CommandStr, CommandParam) then
+      Command := TModeJACommand.Create(Self, TJAMode(CommandParam));
+    if fMenuCommands.Search(CommandStr, CommandParam) then
+      Command := TMenuJACommand.Create(Self, Integer(CommandParam));
+    if fMonitorCommands.Search(CommandStr, CommandParam) then
+      Command := TSwitchMonitorCommand.Create(Self, Integer(CommandParam));
     fMappedCommands.Insert(fMappedKeys[i], Command);
   end;
 end;
 
 procedure TJFLircPlugin.ClearMappedKeys;
-var
-  P: Pointer;
 begin
   while fMappedKeys.Count > 0 do begin
-    P := fMappedKeys.Objects[0];
+    (fMappedKeys.Objects[0] as TString).Free;
     fMappedKeys.Delete(0);
-    if Assigned(P) then
-      ReleaseString(P);
   end;
 end;
 

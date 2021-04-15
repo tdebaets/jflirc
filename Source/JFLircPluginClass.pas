@@ -54,6 +54,7 @@ type
     fWinLircPort: Integer;
     fWinLircServer: String;
     fWinLircServerMinimized: Boolean; // TODO: add to docs
+    fSendLircQuitCommand: Boolean; // TODO: add to docs
     fMaxRetries: Integer;
     fNoConnectFailedWarning: Boolean;
 
@@ -140,6 +141,9 @@ const
 const
   IniSection = 'Settings';
   KeysSection = 'Keys';
+
+const
+  LircQuitCommand = 'QUIT';
 
 procedure DisposeCommand(pData: Pointer);
 begin
@@ -317,6 +321,8 @@ function TJFLircPlugin.Close: BOOL;
 begin
   Result := True;
   try
+    if fSendLircQuitCommand and fConnected then
+      fSocket.Socket.SendText(LircQuitCommand);
     fConnected := False;
     fSocket.Close;
     if fWindow <> 0 then begin
@@ -599,7 +605,8 @@ begin
     ReadWriteString('WinLircHost', fWinLircHost, DefaultHost);
     ReadWriteInteger('WinLircPort', fWinLircPort, DefaultPort);
     ReadWriteString('WinLircServer', fWinLircServer, '');
-    ReadWriteBool('WinLircServerMinimized', fWinLircServerMinimized, False); 
+    ReadWriteBool('WinLircServerMinimized', fWinLircServerMinimized, False);
+    ReadWriteBool('SendLircQuitCommand', fSendLircQuitCommand, False); 
     ReadWriteInteger('MaxRetries', fMaxRetries, DefaultMaxRetries);
     ReadWriteBool('NoConnectFailedWarning', fNoConnectFailedWarning, False);
     if not Write then begin
@@ -617,6 +624,7 @@ begin
     fWinLircPort := DefaultPort;
     fWinLircServer := '';
     fWinLircServerMinimized := False;
+    fSendLircQuitCommand := False;
     fMaxRetries := DefaultMaxRetries;
     fNoConnectFailedWarning := False;
   end;

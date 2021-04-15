@@ -47,12 +47,13 @@ type
     fMenuCommands: THashTable;
     fMonitorCommands: THashTable;
     fMappedCommands: THashTable;
-    fMappedKeys: TStringList; // TODO: use helper class
+    fMappedKeys: TStringList;
 
     fIniFile: TIniFile;
     fWinLircHost: String;
     fWinLircPort: Integer;
     fWinLircServer: String;
+    fWinLircServerMinimized: Boolean; // TODO: add to docs
     fMaxRetries: Integer;
     fNoConnectFailedWarning: Boolean;
 
@@ -426,8 +427,14 @@ begin
 end;
 
 procedure TJFLircPlugin.StartServer;
+var
+  ShowCmd: Integer;
 begin
-  if not ExecuteFile(0, fWinLircServer, '', '', SW_SHOWNORMAL) then begin
+  if fWinLircServerMinimized then
+    ShowCmd := SW_SHOWMINNOACTIVE
+  else
+    ShowCmd := SW_SHOWNORMAL;
+  if not ExecuteFile(0, fWinLircServer, '', '', ShowCmd) then begin
     MessageBox(fhWndMain, 'Unable to start the WinLIRC server. ' + CrLf2
         + 'Review the WinLIRC plug-in settings and '
         + 'check if the server filename points to a valid executable.',
@@ -592,6 +599,7 @@ begin
     ReadWriteString('WinLircHost', fWinLircHost, DefaultHost);
     ReadWriteInteger('WinLircPort', fWinLircPort, DefaultPort);
     ReadWriteString('WinLircServer', fWinLircServer, '');
+    ReadWriteBool('WinLircServerMinimized', fWinLircServerMinimized, False); 
     ReadWriteInteger('MaxRetries', fMaxRetries, DefaultMaxRetries);
     ReadWriteBool('NoConnectFailedWarning', fNoConnectFailedWarning, False);
     if not Write then begin
@@ -608,6 +616,7 @@ begin
     fWinLircHost := DefaultHost;
     fWinLircPort := DefaultPort;
     fWinLircServer := '';
+    fWinLircServerMinimized := False;
     fMaxRetries := DefaultMaxRetries;
     fNoConnectFailedWarning := False;
   end;

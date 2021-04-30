@@ -45,7 +45,7 @@ PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
 Packages=vclx30;VCL30;vcldb30;vcldbx30;VclSmp30
-Conditionals=
+Conditionals=FastMM
 DebugSourceDirs=
 UsePackages=0
 [Parameters]

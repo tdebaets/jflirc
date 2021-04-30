@@ -28,8 +28,8 @@ unit JFLircPluginClass;
 
 interface
 
-uses Windows, Messages, SysUtils, Classes, JFBase, JFGeneral, JDefine, ThisCall,
-    ScktComp, Common2, EzdslHsh, IniFiles, CmnFunc2;
+uses Windows, Messages, SysUtils, Classes, SyncObjs, JFBase, JFGeneral, JDefine,
+    ThisCall, ScktComp, Common2, EzdslHsh, IniFiles, CmnFunc2;
 
 const
   PluginName = 'WinLIRC plug-in for jetAudio';
@@ -130,8 +130,8 @@ uses JetAudio6_API, JetAudio6_Const, JetAudioUtil, PathFunc, ShFolder,
     JFLircCommands;
 
 var
-  // TODO: better way than keeping this in a global var?
-  ThisCallPatched: Boolean = False;
+  gThisCallThunks: TThisCallThunks = nil;
+  gThisCallThunksLock: TCriticalSection = nil;
 
 const
   DefaultHost = 'localhost';
@@ -144,6 +144,28 @@ const
 
 const
   LircQuitCommand = 'QUIT';
+
+procedure InitThisCallThunks(Plugin: TJFLircPlugin);
+begin
+  gThisCallThunksLock.Enter;
+  try
+    if not Assigned(gThisCallThunks) then
+      gThisCallThunks := TThisCallThunks.Create(Plugin, 13);
+  finally
+    gThisCallThunksLock.Leave;
+  end;
+end;
+
+procedure FreeThisCallThunks;
+begin
+  gThisCallThunksLock.Enter;
+  try
+    if Assigned(gThisCallThunks) then
+      FreeAndNil(gThisCallThunks);
+  finally
+    gThisCallThunksLock.Leave;
+  end;
+end;
 
 procedure DisposeCommand(pData: Pointer);
 begin
@@ -159,10 +181,7 @@ begin
     fWindow := 0;
     FakeContextMenuId := 0;
     hWndRemocon := 0;
-    if not ThisCallPatched then begin
-      TThisCallThunks.Create(Self, 13);
-      ThisCallPatched := True;
-    end;
+    InitThisCallThunks(Self);
     fFields := TStringList.Create;
     fModeCommands := THashTable.Create(False);
     // default hash function causes integer overflows
@@ -671,5 +690,12 @@ begin
       + 'Please contact the author if the problems persists.'),
       PluginName, MB_ICONERROR);
 end;
+
+initialization
+  gThisCallThunksLock := TCriticalSection.Create;
+
+finalization
+  FreeThisCallThunks;
+  FreeAndNil(gThisCallThunksLock);
 
 end.

@@ -27,6 +27,9 @@
 library JFLirc;
 
 uses
+{$IFDEF FastMM}
+  FastMM4,
+{$ENDIF}
   Windows,
   SysUtils,
   Classes,

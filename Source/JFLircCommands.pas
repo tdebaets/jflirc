@@ -74,6 +74,14 @@ type
     fMonitorIdx: Integer;
   end;
 
+  TExecProcessCommand = class(TJACommand)
+  public
+    constructor Create(Owner: TJFLircPlugin; const CmdLine: String);
+    procedure Execute; override;
+  private
+    fCmdLine: String;
+  end;
+
 implementation
 
 uses JetAudio6_API, MonitorFunc, MultiMon;
@@ -211,6 +219,18 @@ begin
     if FullScreen then
       ToggleFullScreen;
   end;
+end;
+
+constructor TExecProcessCommand.Create(Owner: TJFLircPlugin;
+    const CmdLine: String);
+begin
+  inherited Create(Owner);
+  fCmdLine := CmdLine;
+end;
+
+procedure TExecProcessCommand.Execute;
+begin
+  RunCmdLine(fCmdLine);
 end;
 
 end.

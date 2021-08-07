@@ -661,13 +661,15 @@ begin
     Command := nil;
     CommandStr := TString(fMappedKeys.Objects[i]).Str;
     if fStandardCommands.Search(CommandStr, CommandParam) then
-      Command := TStandardJACommand.Create(Self, Integer(CommandParam));
-    if fModeCommands.Search(CommandStr, CommandParam) then
-      Command := TModeJACommand.Create(Self, TJAMode(CommandParam));
-    if fMenuCommands.Search(CommandStr, CommandParam) then
-      Command := TMenuJACommand.Create(Self, Integer(CommandParam));
-    if fMonitorCommands.Search(CommandStr, CommandParam) then
-      Command := TSwitchMonitorCommand.Create(Self, Integer(CommandParam));
+      Command := TStandardJACommand.Create(Self, Integer(CommandParam))
+    else if fModeCommands.Search(CommandStr, CommandParam) then
+      Command := TModeJACommand.Create(Self, TJAMode(CommandParam))
+    else if fMenuCommands.Search(CommandStr, CommandParam) then
+      Command := TMenuJACommand.Create(Self, Integer(CommandParam))
+    else if fMonitorCommands.Search(CommandStr, CommandParam) then
+      Command := TSwitchMonitorCommand.Create(Self, Integer(CommandParam))
+    else if Trim(CommandStr) <> '' then
+      Command := TExecProcessCommand.Create(Self, CommandStr); // TODO: add to docs
     fMappedCommands.Insert(fMappedKeys[i], Command);
   end;
 end;

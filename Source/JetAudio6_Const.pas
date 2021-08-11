@@ -170,6 +170,7 @@ type
     SCREENMODE_FULL_WIDTH, 
     SCREENMODE_FULL_HEIGHT  );
 
+// TODO: add 2.39 ratio
 type
   eAspectMode = (
     ASPECTMODE_ORG, 

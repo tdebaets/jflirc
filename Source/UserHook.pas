@@ -52,14 +52,15 @@ uses ApiHook, JFLircPluginClass;
 function NewTrackPopupMenuEx(hMenu: HMENU; Flags: UINT; x, y: Integer;
     hWnd: HWND; TPMParams: Pointer): BOOL; stdcall;
 var
-  MenuId: Integer;
+  MenuID: Cardinal;
 begin
   Result := False;
   try
-    if Assigned(JFLircPlugin) then begin
-      MenuId := JFLircPlugin.FakeContextMenuId;
-      if MenuId <> 0 then begin
-        Result := BOOL(MenuId);
+    if Assigned(JFLircPlugin)
+        and Assigned(JFLircPlugin.TrackPopupMenuCallback) then begin
+      MenuID := 0;
+      if not JFLircPlugin.TrackPopupMenuCallback(hMenu, MenuID) then begin
+        Result := BOOL(MenuID);
         SetLastError(0);
         Exit;
       end;

@@ -37,6 +37,10 @@ const
       'Control jetAudio with a remote controller through the WinLIRC protocol.';
 
 type
+  TTrackPopupMenuCallback = function(hMenu: HMENU;
+      var MenuID: Cardinal): Boolean of object;
+
+type
 
   TJFLircPlugin = class(TJFGeneral)
   private
@@ -59,11 +63,14 @@ type
     fNoConnectFailedWarning: Boolean;
 
     fhWndMain: HWND;
+    fhWndRemocon: HWND;
 
     fWindow: HWND;
 
     fConnected: Boolean;
     fTries: Integer;
+
+    fTrackPopupMenuCallback: TTrackPopupMenuCallback;
 
     procedure csConnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure csDisconnect(Sender: TObject; Socket: TCustomWinSocket);
@@ -88,9 +95,6 @@ type
 
     procedure HandleException(E: Exception);
   public
-    FakeContextMenuId: Integer;
-    hWndRemocon: HWND;
-    
     constructor Create;
     destructor Destroy; override;
 
@@ -118,6 +122,10 @@ type
     function OnTimer(nCounter: Integer): BOOL; override; stdcall;
     function OnEvent(uEvent: UINT; wParam: WPARAM; lParam: LPARAM): UINT;
         override; stdcall;
+
+    property hWndRemocon: HWND read fhWndRemocon;
+    property TrackPopupMenuCallback: TTrackPopupMenuCallback
+        read fTrackPopupMenuCallback write fTrackPopupMenuCallback;
   end;
 
 var
@@ -179,8 +187,7 @@ begin
     inherited Create;
     fHwndMain := 0;
     fWindow := 0;
-    FakeContextMenuId := 0;
-    hWndRemocon := 0;
+    fhWndRemocon := 0;
     InitThisCallThunks(Self);
     fFields := TStringList.Create;
     fModeCommands := THashTable.Create(False);
@@ -320,7 +327,7 @@ begin
   try
     fWindow := AllocateHWND(WndProc);
     fhWndMain := hWnd;
-    hWndRemocon := JAGetRemoconWindow;
+    fhWndRemocon := JAGetRemoconWindow;
     FillModeCommands;
     FillStandardCommands;
     FillMenuCommands;
@@ -563,7 +570,7 @@ var
 begin
   for Aspect := Low(eAspectMode) to High(eAspectMode) do begin
     fMenuCommands.Insert(AspectModeCommands[Aspect],
-        Pointer(AspectMenuId + Integer(Aspect)));
+        Pointer(AspectMenuID + Integer(Aspect)));
   end;
 end;
 
@@ -668,6 +675,9 @@ begin
       Command := TMenuJACommand.Create(Self, Integer(CommandParam))
     else if fMonitorCommands.Search(CommandStr, CommandParam) then
       Command := TSwitchMonitorCommand.Create(Self, Integer(CommandParam))
+    // Case sensitive compare, in accordance with the previous lookups
+    else if CompareStr(CommandStr, 'cycleaspect') = 0 then // TODO: add to docs
+      Command := TCycleAspectModeCommand.Create(Self)
     else if Trim(CommandStr) <> '' then
       Command := TExecProcessCommand.Create(Self, CommandStr); // TODO: add to docs
     fMappedCommands.Insert(fMappedKeys[i], Command);

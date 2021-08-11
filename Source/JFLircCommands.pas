@@ -56,12 +56,30 @@ type
     fLParam: Integer;
   end;
 
-  TMenuJACommand = class(TJACommand)
+  TMenuJACommandBase = class(TJACommand)
+  protected
+    procedure TriggerFakeVideoWindowPopupMenu;
+    function TrackPopupMenuCallback(hMenu: HMENU;
+        var MenuID: Cardinal): Boolean; virtual; abstract;
+  end;
+
+  TMenuJACommand = class(TMenuJACommandBase)
   public
-    constructor Create(Owner: TJFLircPlugin; MenuId: Integer);
+    constructor Create(Owner: TJFLircPlugin; MenuID: Integer);
     procedure Execute; override;
+  protected
+    function TrackPopupMenuCallback(hPopupMenu: HMENU;
+        var MenuID: Cardinal): Boolean; override;
   private
-    fMenuId: Integer;
+    fMenuID: Integer;
+  end;
+
+  TCycleAspectModeCommand = class(TMenuJACommandBase)
+  public
+    procedure Execute; override;
+  protected
+    function TrackPopupMenuCallback(hPopupMenu: HMENU;
+        var MenuID: Cardinal): Boolean; override;
   end;
 
   TSwitchMonitorCommand = class(TJACommand)
@@ -84,7 +102,7 @@ type
 
 implementation
 
-uses JetAudio6_API, MonitorFunc, MultiMon;
+uses JetAudio6_API, JetAudio6_Const, MonitorFunc, MultiMon;
 
 constructor TJACommand.Create(Owner: TJFLircPlugin);
 begin
@@ -117,27 +135,103 @@ begin
     SendMessage(fOwner.hWndRemocon, WM_REMOCON_SENDCOMMAND, 0, fLParam);
 end;
 
-constructor TMenuJACommand.Create(Owner: TJFLircPlugin; MenuId: Integer);
-begin
-  inherited Create(Owner);
-  fMenuId := MenuId;
-end;
-
-procedure TMenuJACommand.Execute;
+procedure TMenuJACommandBase.TriggerFakeVideoWindowPopupMenu;
 var
   hWndVideo: HWND;
+  Rect: TRect;
 begin
   if fOwner.hWndRemocon <> 0 then begin
-    hWndVideo := JAGetVideoWindow(fOwner.hWndRemocon);
+    hWndVideo := JAGetVideoViewerWindow(fOwner.hWndRemocon);
     if (hWndVideo <> 0) and ApiHooked then begin
-      fOwner.FakeContextMenuId := fMenuId;
+      GetWindowRect(hWndVideo, Rect);
+      fOwner.TrackPopupMenuCallback := TrackPopupMenuCallback;
       try
-        SendMessage(hWndVideo, WM_CONTEXTMENU, 0, 0);
+        // Must pass the correct cursor coordinates here, otherwise JetAudio
+        // will show the main, generic context menu instead of the specialized
+        // video context menu.
+        SendMessage(hWndVideo, WM_CONTEXTMENU, hWndVideo,
+            MAKE_X_Y_LPARAM(Rect.Left, Rect.Top));
       finally
-        fOwner.FakeContextMenuId := 0;
+        fOwner.TrackPopupMenuCallback := nil;
       end;
     end;
   end;
+end;
+
+constructor TMenuJACommand.Create(Owner: TJFLircPlugin; MenuID: Integer);
+begin
+  inherited Create(Owner);
+  fMenuID := MenuID;
+end;
+
+function TMenuJACommand.TrackPopupMenuCallback(hPopupMenu: HMENU;
+    var MenuID: Cardinal): Boolean;
+begin
+  Result := False; // prevent popup menu from being actually shown
+  MenuID := fMenuID;
+end;
+
+procedure TMenuJACommand.Execute;
+begin
+  TriggerFakeVideoWindowPopupMenu;
+end;
+
+const
+  InvalidAspectMode = eAspectMode(-1);
+
+function TCycleAspectModeCommand.TrackPopupMenuCallback(hPopupMenu: HMENU;
+    var MenuID: Cardinal): Boolean;
+  function GetSelectedAspectMode(hSubMenu: HMENU): eAspectMode; overload;
+  var
+    AspectMode: eAspectMode;
+    MenuID: Cardinal;
+    State: Integer;
+  begin
+    Result := InvalidAspectMode;
+    if hSubMenu = 0 then
+      Exit;
+    for AspectMode := Low(eAspectMode) to High(eAspectMode) do begin
+      MenuID := AspectMenuID + Cardinal(AspectMode);
+      State := GetMenuState(hSubMenu, MenuID, MF_BYCOMMAND);
+      if State = -1 then begin
+        // Menu item does not exist, probably the wrong submenu
+        Exit;
+      end;
+      if State and MF_CHECKED <> 0 then begin
+        Result := AspectMode;
+        Exit;
+      end;
+    end;
+  end;
+  function GetSelectedAspectMode: eAspectMode; overload;
+  var
+    MenuCount, i: Integer;
+  begin
+    Result := InvalidAspectMode;
+    MenuCount := GetMenuItemCount(hPopupMenu);
+    for i := 0 to MenuCount - 1 do begin
+      Result := GetSelectedAspectMode(GetSubMenu(hPopupMenu, i));
+      if Result <> InvalidAspectMode then
+        Break;
+    end;
+  end;
+var
+  AspectMode: eAspectMode;
+begin
+  Result := False; // prevent popup menu from being actually shown
+  AspectMode := GetSelectedAspectMode;
+  if AspectMode = InvalidAspectMode then
+    AspectMode := ASPECTMODE_ORG
+  else
+    Inc(AspectMode);
+  if AspectMode > High(eAspectMode) then
+    AspectMode := Low(eAspectMode);
+  MenuID := AspectMenuID + Cardinal(AspectMode);
+end;
+
+procedure TCycleAspectModeCommand.Execute;
+begin
+  TriggerFakeVideoWindowPopupMenu;
 end;
 
 constructor TSwitchMonitorCommand.Create(Owner: TJFLircPlugin;

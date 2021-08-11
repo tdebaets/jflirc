@@ -37,9 +37,10 @@ const
   JAModes: array[TJAMode] of Integer = (CMP_CDP, CMP_DGA);
 
 const
-  AspectMenuId = 6570;
+  AspectMenuID = 6570;
 
 function JAGetRemoconWindow: HWND;
+function JAGetVideoViewerWindow(JAWindow: HWND): HWND;
 function JAGetVideoWindow(JAWindow: HWND): HWND;
 
 implementation
@@ -65,18 +66,25 @@ begin
   hWndVideo := FindWindowEx(hWin, 0, VideoWndClass, VideoWndTitle);
   if hWndVideo <> 0 then begin
     if Assigned(PhJAVideoWnd) then
-      PhJAVideoWnd^ := GetParent(hWndVideo);
+      PhJAVideoWnd^ := hWndVideo;
     Result := False;
   end;
 end;
 
-function JAGetVideoWindow(JAWindow: HWND): HWND;
+function JAGetVideoViewerWindow(JAWindow: HWND): HWND;
 var
   ThreadID: Integer;
 begin
   Result := 0;
   ThreadID := GetWindowThreadProcessId(JAWindow, nil);
   EnumThreadWindows(ThreadID, @EnumJAThreadWndProc, Integer(@Result));
+end;
+
+function JAGetVideoWindow(JAWindow: HWND): HWND;
+begin
+  Result := JAGetVideoViewerWindow(JAWindow);
+  if Result <> 0 then
+    Result := GetParent(Result);
 end;
 
 end.

@@ -28,7 +28,7 @@ unit JetAudioUtil;
 
 interface
 
-uses Windows, JetAudio6_API;
+uses Windows, JetAudio6_API, JetAudio6_Const;
 
 type
   TJAMode = (jamDisc, jamFile);
@@ -37,7 +37,13 @@ const
   JAModes: array[TJAMode] of Integer = (CMP_CDP, CMP_DGA);
 
 const
-  AspectMenuID = 6570;
+  AspectMenuIDs: array[eAspectMode] of Cardinal = (
+      6570,   // ASPECTMODE_ORG
+      6571,   // ASPECTMODE_4X3
+      6572,   // ASPECTMODE_16X9
+      6573,   // ASPECTMODE_185X100
+      6574,   // ASPECTMODE_235X100
+      6582);  // ASPECTMODE_239X100
 
 function JAGetRemoconWindow: HWND;
 function JAGetVideoViewerWindow(JAWindow: HWND): HWND;

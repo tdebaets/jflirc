@@ -184,15 +184,13 @@ function TCycleAspectModeCommand.TrackPopupMenuCallback(hPopupMenu: HMENU;
   function GetSelectedAspectMode(hSubMenu: HMENU): eAspectMode; overload;
   var
     AspectMode: eAspectMode;
-    MenuID: Cardinal;
     State: Integer;
   begin
     Result := InvalidAspectMode;
     if hSubMenu = 0 then
       Exit;
     for AspectMode := Low(eAspectMode) to High(eAspectMode) do begin
-      MenuID := AspectMenuID + Cardinal(AspectMode);
-      State := GetMenuState(hSubMenu, MenuID, MF_BYCOMMAND);
+      State := GetMenuState(hSubMenu, AspectMenuIDs[AspectMode], MF_BYCOMMAND);
       if State = -1 then begin
         // Menu item does not exist, probably the wrong submenu
         Exit;
@@ -226,7 +224,7 @@ begin
     Inc(AspectMode);
   if AspectMode > High(eAspectMode) then
     AspectMode := Low(eAspectMode);
-  MenuID := AspectMenuID + Cardinal(AspectMode);
+  MenuID := AspectMenuIDs[AspectMode];
 end;
 
 procedure TCycleAspectModeCommand.Execute;

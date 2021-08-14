@@ -561,8 +561,13 @@ begin
 end;
 
 const
-  AspectModeCommands: array[eAspectMode] of String =
-      ('aspectoriginal', 'aspect43', 'aspect169', 'aspect1851', 'aspect2351');
+  AspectModeCommands: array[eAspectMode] of String = (
+      'aspectoriginal',
+      'aspect43',
+      'aspect169',
+      'aspect1851',
+      'aspect2351',
+      'aspect2391'); // TODO: add to docs
 
 procedure TJFLircPlugin.FillMenuCommands;
 var
@@ -570,7 +575,7 @@ var
 begin
   for Aspect := Low(eAspectMode) to High(eAspectMode) do begin
     fMenuCommands.Insert(AspectModeCommands[Aspect],
-        Pointer(AspectMenuID + Integer(Aspect)));
+        Pointer(AspectMenuIDs[Aspect]));
   end;
 end;
 

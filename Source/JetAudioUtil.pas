@@ -2,7 +2,7 @@
  *
  *            WinLIRC plug-in for jetAudio
  *
- *            Copyright (c) 2016 Tim De Baets
+ *            Copyright (c) 2016-2021 Tim De Baets
  *
  ****************************************************************************
  *
